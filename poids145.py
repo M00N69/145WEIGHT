@@ -14,32 +14,30 @@ if uploaded_file is not None:
     # Lecture du fichier XLSX
     df = pd.read_excel(uploaded_file)
 
-    # Filtrage des données
-    df = df[df.iloc[:, 12] == "LOT PROTEAN"]  # Filtrage du lot 
-    df = df.drop("BatchNumber", axis=1)  # Suppression de la colonne BatchNumber
+    # Filtrage des données pour le lot LOT PROTEAN
+    df = df[df["LOT PROTEAN"] != 0]
+
+    # Suppression de la colonne BatchNumber
+    df = df.drop("BatchNumber", axis=1)
 
     # Convertir la colonne Timestamp en datetime
-    # Assurez-vous que le format est CORRECT pour votre fichier XLSX
     df["Timestamp"] = pd.to_datetime(df["Timestamp"], format='%d/%m/%Y %H:%M:%S')
-
-    # Créer une nouvelle colonne "Id Timestamp" en combinant Id et Timestamp
-    df["Id Timestamp"] = df["Id"].astype(str) + " - " + df["Timestamp"].dt.strftime("%d/%m/%Y %H:%M:%S")
 
     # Slider pour le timestamp
     start_date, end_date = st.slider(
         "Sélectionnez la période",
-        # Convertir les valeurs min et max en datetime pour le slider
-        value=(pd.to_datetime(df["Timestamp"].min()), pd.to_datetime(df["Timestamp"].max())),
-        format="MM/DD/YYYY HH:mm:ss",
+        min_value=df["Timestamp"].min(),
+        max_value=df["Timestamp"].max(),
+        value=(df["Timestamp"].min(), df["Timestamp"].max()),
+        format="DD/MM/YYYY HH:mm:ss"
     )
-    df = df[
-        (df["Timestamp"] >= start_date) & (df["Timestamp"] <= end_date)
-    ]
+
+    df = df[(df["Timestamp"] >= start_date) & (df["Timestamp"] <= end_date)]
 
     # Sélection de la ressource
     ressource = st.selectbox(
         "Choisissez une ressource",
-        df["Ressource"].unique(),
+        df["Ressource"].unique()
     )
     df = df[df["Ressource"] == ressource]
 
@@ -52,7 +50,7 @@ if uploaded_file is not None:
         .mark_boxplot()
         .encode(
             alt.X("Ressource:N", title="Ressource"),
-            alt.Y("PackWeight:Q", title="Poids du pack"),
+            alt.Y("PackWeight:Q", title="Poids du pack")
         )
     )
     st.altair_chart(chart, use_container_width=True)
@@ -61,12 +59,17 @@ if uploaded_file is not None:
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.boxplot(df["PackWeight"], vert=False, patch_artist=True)
     ax.set_xlabel("Poids du pack")
-    ax.set_ylabel("Ressource")
     ax.set_title("Boxplot des poids des packs pour la ressource " + ressource)
     st.pyplot(fig)
 
-    # Autres graphiques (histogramme, scatter plot, etc.)
-    # ...
+    # Autres graphiques (histogramme)
+    st.subheader("Histogramme des poids des packs")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.hist(df["PackWeight"], bins=20, color='blue', edgecolor='black')
+    ax.set_xlabel("Poids du pack")
+    ax.set_ylabel("Fréquence")
+    ax.set_title("Histogramme des poids des packs pour la ressource " + ressource)
+    st.pyplot(fig)
 
 else:
     st.info("Veuillez charger un fichier XLSX.")
