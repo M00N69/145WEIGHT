@@ -27,16 +27,12 @@ if uploaded_file is not None:
     if df["Timestamp"].isnull().any():
         st.error("Certaines valeurs de Timestamp ne peuvent pas être converties. Veuillez vérifier le format des dates dans le fichier.")
     else:
-        # Exemple de modification des données pour assurer un format correct
-        df["Timestamp"] = df["Timestamp"].apply(lambda x: x.strftime('%d/%m/%Y %H:%M:%S') if not pd.isnull(x) else x)
-        df["Timestamp"] = pd.to_datetime(df["Timestamp"], format='%d/%m/%Y %H:%M:%S')
-
         # Slider pour le timestamp
         start_date, end_date = st.slider(
             "Sélectionnez la période",
-            min_value=df["Timestamp"].min(),
-            max_value=df["Timestamp"].max(),
-            value=(df["Timestamp"].min(), df["Timestamp"].max()),
+            min_value=df["Timestamp"].min().to_pydatetime(),
+            max_value=df["Timestamp"].max().to_pydatetime(),
+            value=(df["Timestamp"].min().to_pydatetime(), df["Timestamp"].max().to_pydatetime()),
             format="DD/MM/YYYY HH:mm:ss"
         )
 
@@ -81,4 +77,3 @@ if uploaded_file is not None:
 
 else:
     st.info("Veuillez charger un fichier XLSX.")
-
