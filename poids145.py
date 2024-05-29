@@ -15,17 +15,19 @@ if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
 
     # Filtrage des données
-    # Remplacez 12 par le numéro de votre colonne de données "LOT PROTEAN"
     df = df[df.iloc[:, 12] == "LOT PROTEAN"]  # Filtrage du lot 
     df = df.drop("BatchNumber", axis=1)  # Suppression de la colonne BatchNumber
 
     # Convertir la colonne Timestamp en datetime
-    df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+    df["Timestamp"] = pd.to_datetime(df["Timestamp"], format="%d/%m/%Y %H:%M")
+
+    # Créer une nouvelle colonne "Id Timestamp" en combinant Id et Timestamp
+    df["Id Timestamp"] = df["Id"].astype(str) + " - " + df["Timestamp"].dt.strftime("%d/%m/%Y %H:%M")
 
     # Slider pour le timestamp
     start_date, end_date = st.slider(
         "Sélectionnez la période",
-        value=(df["Timestamp"].min(), df["Timestamp"].max()),
+        value=(pd.to_datetime(df["Timestamp"].min()), pd.to_datetime(df["Timestamp"].max())),
         format="MM/DD/YYYY HH:mm",
     )
     df = df[
