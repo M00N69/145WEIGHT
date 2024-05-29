@@ -15,9 +15,6 @@ def main_page():
         # Lecture du fichier XLSX
         df = pd.read_excel(uploaded_file)
 
-        # Filtrage des données pour le lot LOT PROTEAN
-        df = df[df["LOT PROTEAN"] != 0]
-
         # Suppression de la colonne BatchNumber
         df = df.drop("BatchNumber", axis=1)
 
@@ -47,14 +44,14 @@ def main_page():
             df = df[df["Ressource"] == ressource]
 
             # Création des graphiques
-            st.subheader("Boxplots des poids des packs par ressource")
+            st.subheader("Boxplots des poids des packs par ressource et lot")
 
             # Boxplot Altair
             chart = (
                 alt.Chart(df)
                 .mark_boxplot()
                 .encode(
-                    alt.X("Ressource:N", title="Ressource"),
+                    alt.X("LOT PROTEAN:N", title="LOT PROTEAN"),
                     alt.Y("PackWeight:Q", title="Poids du pack")
                 )
             )
@@ -62,7 +59,7 @@ def main_page():
 
             # Boxplot Matplotlib
             fig, ax = plt.subplots(figsize=(12, 6))
-            ax.boxplot(df["PackWeight"], vert=False, patch_artist=True)
+            ax.boxplot([df[df["LOT PROTEAN"] == lot]["PackWeight"] for lot in df["LOT PROTEAN"].unique()], vert=False, patch_artist=True, labels=df["LOT PROTEAN"].unique())
             ax.set_xlabel("Poids du pack")
             ax.set_title("Boxplot des poids des packs pour la ressource " + str(ressource))
             st.pyplot(fig)
@@ -88,9 +85,6 @@ def overweight_page():
     if uploaded_file is not None:
         # Lecture du fichier XLSX
         df = pd.read_excel(uploaded_file)
-
-        # Filtrage des données pour le lot LOT PROTEAN
-        df = df[df["LOT PROTEAN"] != 0]
 
         # Suppression de la colonne BatchNumber
         df = df.drop("BatchNumber", axis=1)
