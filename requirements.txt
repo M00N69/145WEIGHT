@@ -1,6 +1,7 @@
-altair
-matplotlib
 pandas
+numpy
+scipy
+matplotlib
+altair
 streamlit
 openpyxl
-numpy
