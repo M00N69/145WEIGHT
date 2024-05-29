@@ -7,16 +7,20 @@ st.set_page_config(layout="wide")
 
 st.title("Analyse des poids des packs LOT PROTEAN")
 
-# Upload du fichier CSV
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+# Upload du fichier XLSX
+uploaded_file = st.file_uploader("Upload your XLSX file", type=["xlsx"])
 
 if uploaded_file is not None:
-    # Lecture du fichier CSV
-    df = pd.read_csv(uploaded_file)
+    # Lecture du fichier XLSX
+    df = pd.read_excel(uploaded_file)
 
     # Filtrage des données
-    df = df[df["LOT PROTEAN"] == "LOT PROTEAN"]  # Filtrage du lot
+    # Remplacez 12 par le numéro de votre colonne de données "LOT PROTEAN"
+    df = df[df.iloc[:, 12] == "LOT PROTEAN"]  # Filtrage du lot 
     df = df.drop("BatchNumber", axis=1)  # Suppression de la colonne BatchNumber
+
+    # Convertir la colonne Timestamp en datetime
+    df["Timestamp"] = pd.to_datetime(df["Timestamp"])
 
     # Slider pour le timestamp
     start_date, end_date = st.slider(
@@ -61,4 +65,4 @@ if uploaded_file is not None:
     # ...
 
 else:
-    st.info("Veuillez charger un fichier CSV.")
+    st.info("Veuillez charger un fichier XLSX.")
