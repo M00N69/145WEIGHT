@@ -112,6 +112,15 @@ def overweight_page():
             st.subheader("Résumé des surpoids par ressource")
             st.dataframe(overweight_summary)
 
+            # Option d'exportation des données de surpoids
+            csv = overweight_summary.to_csv(index=False)
+            st.download_button(
+                label="Télécharger le résumé des surpoids en CSV",
+                data=csv,
+                file_name='surpoids_par_ressource.csv',
+                mime='text/csv',
+            )
+
             # Statistiques descriptives
             st.subheader("Statistiques descriptives des surpoids par ressource")
             descriptive_stats = df_overweight.groupby("Ressource")["Surpoids"].describe()
