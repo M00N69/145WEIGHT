@@ -41,7 +41,7 @@ if uploaded_file is not None:
         # Sélection de la ressource
         ressource = st.selectbox(
             "Choisissez une ressource",
-            df["Ressource"].unique()
+            df["Ressource"].dropna().unique()
         )
         df = df[df["Ressource"] == ressource]
 
@@ -63,7 +63,7 @@ if uploaded_file is not None:
         fig, ax = plt.subplots(figsize=(12, 6))
         ax.boxplot(df["PackWeight"], vert=False, patch_artist=True)
         ax.set_xlabel("Poids du pack")
-        ax.set_title("Boxplot des poids des packs pour la ressource " + ressource)
+        ax.set_title("Boxplot des poids des packs pour la ressource " + str(ressource))
         st.pyplot(fig)
 
         # Autres graphiques (histogramme)
@@ -72,7 +72,7 @@ if uploaded_file is not None:
         ax.hist(df["PackWeight"], bins=20, color='blue', edgecolor='black')
         ax.set_xlabel("Poids du pack")
         ax.set_ylabel("Fréquence")
-        ax.set_title("Histogramme des poids des packs pour la ressource " + ressource)
+        ax.set_title("Histogramme des poids des packs pour la ressource " + str(ressource))
         st.pyplot(fig)
 
 else:
