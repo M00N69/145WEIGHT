@@ -102,21 +102,23 @@ def overweight_page():
         if df["Timestamp"].isnull().any():
             st.error("Certaines valeurs de Timestamp ne peuvent pas être converties. Veuillez vérifier le format des dates dans le fichier.")
         else:
-            # Calcul du surpoids
-            overweight_threshold = st.number_input("Définir le seuil de surpoids", value=1000)
-            df["Surpoids"] = df["PackWeight"] - overweight_threshold
+            # Calcul du surpoids basé sur le poids médian par ressource
+            median_weights = df.groupby("Ressource")["PackWeight"].median().reset_index()
+            median_weights.columns = ["Ressource", "MedianWeight"]
+            df = df.merge(median_weights, on="Ressource")
+            df["Surpoids"] = df["PackWeight"] - df["MedianWeight"]
 
             # Filtrer les ressources avec surpoids
             df_overweight = df[df["Surpoids"] > 0]
 
-            # Group by ressource and calculate the total overweight
+            # Grouper par ressource et calculer le surpoids total
             overweight_summary = df_overweight.groupby("Ressource")["Surpoids"].sum().reset_index()
 
-            # Display the results
+            # Afficher les résultats
             st.subheader("Résumé des surpoids par ressource")
             st.dataframe(overweight_summary)
 
-            # Bar chart of overweight by ressource
+            # Graphique en barres des surpoids par ressource
             st.subheader("Graphique des surpoids par ressource")
             bar_chart = alt.Chart(overweight_summary).mark_bar().encode(
                 x=alt.X('Ressource:N', title='Ressource'),
@@ -127,11 +129,11 @@ def overweight_page():
     else:
         st.info("Veuillez charger un fichier XLSX.")
 
-# Sidebar navigation
+# Barre latérale de navigation
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Aller à", ["Analyse des poids", "Ressources avec surpoids"])
 
-# Page routing
+# Routage des pages
 if page == "Analyse des poids":
     main_page()
 elif page == "Ressources avec surpoids":
