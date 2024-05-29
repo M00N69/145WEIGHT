@@ -112,6 +112,11 @@ def overweight_page():
             st.subheader("Résumé des surpoids par ressource")
             st.dataframe(overweight_summary)
 
+            # Statistiques descriptives
+            st.subheader("Statistiques descriptives des surpoids par ressource")
+            descriptive_stats = df_overweight.groupby("Ressource")["Surpoids"].describe()
+            st.dataframe(descriptive_stats)
+
             # Graphique en barres des surpoids par ressource
             st.subheader("Graphique des surpoids par ressource")
             bar_chart = alt.Chart(overweight_summary).mark_bar().encode(
@@ -119,6 +124,18 @@ def overweight_page():
                 y=alt.Y('Surpoids:Q', title='Total du surpoids')
             )
             st.altair_chart(bar_chart, use_container_width=True)
+
+            # Histogramme des surpoids par ressource
+            st.subheader("Histogramme des surpoids par ressource")
+            for res in df_overweight["Ressource"].unique():
+                res_data = df_overweight[df_overweight["Ressource"] == res]
+                st.write(f"Ressource: {res}")
+                fig, ax = plt.subplots(figsize=(12, 6))
+                ax.hist(res_data["Surpoids"], bins=20, color='blue', edgecolor='black')
+                ax.set_xlabel("Surpoids")
+                ax.set_ylabel("Fréquence")
+                ax.set_title(f"Histogramme des surpoids pour la ressource {res}")
+                st.pyplot(fig)
 
     else:
         st.info("Veuillez charger un fichier XLSX.")
