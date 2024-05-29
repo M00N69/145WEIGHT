@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import altair as alt
+import scipy.stats as stats
 
 st.set_page_config(layout="wide")
 
@@ -196,38 +197,73 @@ def report_page():
         plt.xticks(rotation=90)
         st.pyplot(fig)
 
-        st.markdown("### Interprétation des Résultats")
-        st.markdown("""
-        1. **Ressources avec le plus de surpoids** :
-            - Les ressources 1127.0, 4470.0 et 14969.0 ont les surpoids totaux les plus élevés, avec des surpoids de 213147.0 g, 129966.0 g, et 202415.0 g respectivement.
-        
-        2. **Ressources avec le moins de surpoids** :
-            - Les ressources ayant les surpoids les plus faibles peuvent indiquer une meilleure conformité aux poids médians attendus. Par exemple, la ressource 5359.0 a un surpoids de seulement 7161.0 g.
-        
-        3. **Variation des surpoids** :
-            - Une variation significative dans les surpoids totaux entre les différentes ressources peut indiquer des problèmes spécifiques liés à certaines ressources, tels que des erreurs de production, des matières premières de qualité variable, ou des processus de fabrication inconsistants.
-        """)
+        st.markdown("### Analyse des Distributions Statistiques")
+        st.write("Pour comprendre les distributions des surpoids, nous allons comparer les données avec différentes distributions statistiques.")
 
-        st.markdown("### Actions Recommandées")
-        st.markdown("""
-        1. **Inspection des Processus de Production** :
-            - Effectuer une revue détaillée des processus de production pour les ressources avec les surpoids les plus élevés. Rechercher les étapes où des écarts peuvent se produire.
-        
-        2. **Recalibration des Équipements** :
-            - Vérifier et recalibrer les équipements de mesure et de production pour les ressources problématiques afin de réduire les écarts de poids.
-        
-        3. **Formation et Sensibilisation** :
-            - Former les opérateurs sur l'importance de maintenir les poids des packs dans les limites spécifiées. Sensibiliser le personnel aux impacts des surpoids sur la qualité et les coûts.
-        
-        4. **Analyse Continue** :
-            - Mettre en place un système de surveillance continue des poids pour identifier et corriger rapidement les écarts.
-        
-        5. **Comparaison avec les Standards de l'Industrie** :
-            - Comparer les résultats obtenus avec les standards de l'industrie pour s'assurer que les performances sont alignées avec les meilleures pratiques.
-        """)
+        # Histogramme des surpoids et courbe de distribution normale
+        fig, ax = plt.subplots(figsize=(14, 7))
+        ax.hist(df_surpoids['Surpoids'], bins=20, density=True, alpha=0.6, color='g', edgecolor='black')
 
-        st.markdown("### Conclusion")
-        st.write("L'analyse des surpoids par ressource a permis d'identifier les ressources les plus problématiques en termes de surpoids. En prenant des mesures correctives ciblées, il est possible de réduire les écarts et d'améliorer la conformité des poids des packs, conduisant à une meilleure qualité et une réduction des coûts associés aux surpoids.")
+        # Ajustement de la distribution normale
+        mu, std = stats.norm.fit(df_surpoids['Surpoids'])
+        xmin, xmax = plt.xlim()
+        x = np.linspace(xmin, xmax, 100)
+        p = stats.norm.pdf(x, mu, std)
+        ax.plot(x, p, 'k', linewidth=2)
+        title = "Ajustement de la distribution normale: mu = %.2f,  std = %.2f" % (mu, std)
+        ax.set_title(title)
+
+        st.pyplot(fig)
+
+        st.markdown("### Analyse par `LOT PROTEAN` et par jour")
+        st.write("Examiner si certains lots ou jours présentent des surpoids significativement plus élevés.")
+        
+        # Lecture des données d'origine pour analyse par lot et jour
+        uploaded_file = st.file_uploader("Upload your original XLSX file for detailed analysis", type=["xlsx"], key="detailed_analysis")
+
+        if uploaded_file is not None:
+            df = pd.read_excel(uploaded_file)
+            df = df.drop("BatchNumber", axis=1)
+            df["Timestamp"] = pd.to_datetime(df["Timestamp"], format='%d/%m/%Y %H:%M:%S', errors='coerce')
+            if df["Timestamp"].isnull().any():
+                st.error("Certaines valeurs de Timestamp ne peuvent pas être converties. Veuillez vérifier le format des dates dans le fichier.")
+            else:
+                median_weights = df.groupby("Ressource")["PackWeight"].median().reset_index()
+                median_weights.columns = ["Ressource", "MedianWeight"]
+                df = df.merge(median_weights, on="Ressource")
+                df["Surpoids"] = df["PackWeight"] - df["MedianWeight"]
+
+                # Analyse par `LOT PROTEAN`
+                lot_surplus = df.groupby("LOT PROTEAN")["Surpoids"].sum().reset_index()
+                st.markdown("#### Surpoids par `LOT PROTEAN`")
+                st.dataframe(lot_surplus)
+
+                # Analyse par jour
+                df['Date'] = df['Timestamp'].dt.date
+                day_surplus = df.groupby("Date")["Surpoids"].sum().reset_index()
+                st.markdown("#### Surpoids par jour")
+                st.dataframe(day_surplus)
+
+                # Graphique en barres des surpoids par lot
+                st.markdown("#### Graphique des surpoids par `LOT PROTEAN`")
+                fig, ax = plt.subplots(figsize=(14, 7))
+                ax.bar(lot_surplus['LOT PROTEAN'].astype(str), lot_surplus['Surpoids'], color='skyblue')
+                ax.set_xlabel('LOT PROTEAN')
+                ax.set_ylabel('Total du surpoids (g)')
+                ax.set_title('Total du surpoids par LOT PROTEAN')
+                plt.xticks(rotation=90)
+                st.pyplot(fig)
+
+                # Graphique en barres des surpoids par jour
+                st.markdown("#### Graphique des surpoids par jour")
+                fig, ax = plt.subplots(figsize=(14, 7))
+                ax.bar(day_surplus['Date'].astype(str), day_surplus['Surpoids'], color='skyblue')
+                ax.set_xlabel('Date')
+                ax.set_ylabel('Total du surpoids (g)')
+                ax.set_title('Total du surpoids par jour')
+                plt.xticks(rotation=90)
+                st.pyplot(fig)
+
     else:
         st.info("Veuillez charger un fichier CSV contenant le résumé des surpoids.")
 
