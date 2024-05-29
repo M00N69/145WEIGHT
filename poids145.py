@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import altair as alt
 import numpy as np
-import scipy.stats as stats
+from scipy import stats
 
 st.set_page_config(layout="wide")
 
@@ -162,7 +162,7 @@ def report_page():
         df_surpoids = pd.read_csv(uploaded_file)
 
         # Calcul des statistiques descriptives
-        stats = df_surpoids['Surpoids'].describe()
+        stats_desc = df_surpoids['Surpoids'].describe()
 
         # Affichage du rapport
         st.markdown("### Vue d'ensemble")
@@ -172,18 +172,18 @@ def report_page():
         st.write("Voici une analyse statistique descriptive pour mieux comprendre la distribution des surpoids.")
         
         st.markdown("#### Statistiques Descriptives")
-        st.write(stats)
+        st.write(stats_desc)
 
         st.markdown("### Résultats Statistiques")
         st.markdown(f"""
-        - **Count** : {stats['count']} - Nombre de ressources analysées.
-        - **Mean** : {stats['mean']:.2f} - Surpoids moyen.
-        - **Std** : {stats['std']:.2f} - Ecart-type du surpoids, indiquant la dispersion des surpoids par rapport à la moyenne.
-        - **Min** : {stats['min']:.2f} - Surpoids minimum enregistré.
-        - **25%** : {stats['25%']:.2f} - Premier quartile, 25% des ressources ont un surpoids inférieur à cette valeur.
-        - **50%** : {stats['50%']:.2f} - Médiane, la moitié des ressources ont un surpoids inférieur à cette valeur.
-        - **75%** : {stats['75%']:.2f} - Troisième quartile, 75% des ressources ont un surpoids inférieur à cette valeur.
-        - **Max** : {stats['max']:.2f} - Surpoids maximum enregistré.
+        - **Count** : {stats_desc['count']} - Nombre de ressources analysées.
+        - **Mean** : {stats_desc['mean']:.2f} - Surpoids moyen.
+        - **Std** : {stats_desc['std']:.2f} - Ecart-type du surpoids, indiquant la dispersion des surpoids par rapport à la moyenne.
+        - **Min** : {stats_desc['min']:.2f} - Surpoids minimum enregistré.
+        - **25%** : {stats_desc['25%']:.2f} - Premier quartile, 25% des ressources ont un surpoids inférieur à cette valeur.
+        - **50%** : {stats_desc['50%']:.2f} - Médiane, la moitié des ressources ont un surpoids inférieur à cette valeur.
+        - **75%** : {stats_desc['75%']:.2f} - Troisième quartile, 75% des ressources ont un surpoids inférieur à cette valeur.
+        - **Max** : {stats_desc['max']:.2f} - Surpoids maximum enregistré.
         """)
 
         st.markdown("### Graphique des Surpoids par Ressource")
@@ -220,10 +220,10 @@ def report_page():
         st.write("Examiner si certains lots ou jours présentent des surpoids significativement plus élevés.")
         
         # Lecture des données d'origine pour analyse par lot et jour
-        uploaded_file = st.file_uploader("Upload your original XLSX file for detailed analysis", type=["xlsx"], key="detailed_analysis")
+        detailed_file = st.file_uploader("Upload your original XLSX file for detailed analysis", type=["xlsx"], key="detailed_analysis")
 
-        if uploaded_file is not None:
-            df = pd.read_excel(uploaded_file)
+        if detailed_file is not None:
+            df = pd.read_excel(detailed_file)
             df = df.drop("BatchNumber", axis=1)
             df["Timestamp"] = pd.to_datetime(df["Timestamp"], format='%d/%m/%Y %H:%M:%S', errors='coerce')
             if df["Timestamp"].isnull().any():
