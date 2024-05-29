@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import altair as alt
-import scipy.stats as stats
+import numpy as np
 
 st.set_page_config(layout="wide")
 
@@ -205,7 +205,7 @@ def report_page():
         ax.hist(df_surpoids['Surpoids'], bins=20, density=True, alpha=0.6, color='g', edgecolor='black')
 
         # Ajustement de la distribution normale
-        mu, std = stats.norm.fit(df_surpoids['Surpoids'])
+        mu, std = np.mean(df_surpoids['Surpoids']), np.std(df_surpoids['Surpoids'])
         xmin, xmax = plt.xlim()
         x = np.linspace(xmin, xmax, 100)
         p = stats.norm.pdf(x, mu, std)
