@@ -19,7 +19,8 @@ if uploaded_file is not None:
     df = df.drop("BatchNumber", axis=1)  # Suppression de la colonne BatchNumber
 
     # Convertir la colonne Timestamp en datetime
-    df["Timestamp"] = pd.to_datetime(df["Timestamp"], format="%d/%m/%Y %H:%M")
+    # Assurez-vous que le format '%d/%m/%Y %H:%M' est correct pour votre fichier XLSX
+    df["Timestamp"] = pd.to_datetime(df["Timestamp"], format='%d/%m/%Y %H:%M') 
 
     # Créer une nouvelle colonne "Id Timestamp" en combinant Id et Timestamp
     df["Id Timestamp"] = df["Id"].astype(str) + " - " + df["Timestamp"].dt.strftime("%d/%m/%Y %H:%M")
@@ -27,6 +28,7 @@ if uploaded_file is not None:
     # Slider pour le timestamp
     start_date, end_date = st.slider(
         "Sélectionnez la période",
+        # Convertir les valeurs min et max en datetime pour le slider
         value=(pd.to_datetime(df["Timestamp"].min()), pd.to_datetime(df["Timestamp"].max())),
         format="MM/DD/YYYY HH:mm",
     )
